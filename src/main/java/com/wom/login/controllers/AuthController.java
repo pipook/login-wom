@@ -71,7 +71,7 @@ public class AuthController {
         String refresh = body.get("refreshToken");
         String ip = request.getRemoteAddr();
         authService.logout(refresh, ip);
-        return ResponseEntity.ok(Map.of("message", "logged out"));
+        return ResponseEntity.ok(new ApiResponse<>(true, "Sesión cerrada exitosamente", null));
     }
 
     @GetMapping("/me")

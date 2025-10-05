@@ -1,6 +1,8 @@
 # Proyecto de Login con Spring Boot y JWT
 
-Este proyecto implementa un sistema de autenticación y registro de usuarios utilizando Spring Boot, JWT y MySQL.
+Este proyecto implementa un sistema de autenticación y registro de usuarios utilizando Spring Boot, JWT y MySQL. Incluye endpoints para registrar usuarios, iniciar sesión, y obtener información del usuario autenticado.
+
+---
 
 ## Configuración del Proyecto
 
@@ -13,7 +15,7 @@ Este proyecto implementa un sistema de autenticación y registro de usuarios uti
 
 ### Variables de Entorno
 
-Crea un archivo `.env` en la raíz del proyecto basado en el archivo `.env.example` y configura las siguientes variables:
+Crea un archivo `.env` en la raíz del proyecto y configura las siguientes variables:
 
 ```env
 SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/nombre_de_tu_base_de_datos
@@ -50,6 +52,35 @@ JWT_EXPIRATION=900000
    ```
 
 La aplicación estará disponible en `http://localhost:8080`.
+
+---
+
+## Configuración de Seguridad
+
+El proyecto utiliza Spring Security para proteger los endpoints. A continuación, se describen las rutas públicas y protegidas:
+
+### **Rutas Públicas**
+
+Las siguientes rutas son accesibles sin autenticación:
+
+- **Swagger y documentación de la API:**
+  - `/v3/api-docs/**`
+  - `/swagger-ui/**`
+  - `/swagger-ui.html`
+  - `/api/docs/**`
+  - `/api/swagger-ui/**`
+  - `/swagger-resources/**`
+  - `/webjars/**`
+- **Autenticación:**
+  - `/api/auth/**` (endpoints para login, registro, etc.)
+
+### **Rutas Protegidas**
+
+Cualquier otra ruta requiere autenticación mediante un token JWT válido. El token debe incluirse en el encabezado `Authorization` con el formato:
+
+```
+Authorization: Bearer <token_jwt>
+```
 
 ---
 
@@ -122,11 +153,15 @@ Todos los endpoints están prefijados con `/api`.
 - **Respuesta exitosa:**
   ```json
   {
-    "id": 1,
-    "username": "usuario",
-    "email": "correo@ejemplo.com",
-    "accessToken": "nuevo_token_jwt",
-    "refreshToken": "nuevo_refresh_token"
+    "success": true,
+    "message": "Token refrescado exitosamente",
+    "data": {
+      "id": 1,
+      "username": "usuario",
+      "email": "correo@ejemplo.com",
+      "accessToken": "nuevo_token_jwt",
+      "refreshToken": "nuevo_refresh_token"
+    }
   }
   ```
 
@@ -142,7 +177,9 @@ Todos los endpoints están prefijados con `/api`.
 - **Respuesta exitosa:**
   ```json
   {
-    "message": "logged out"
+    "success": true,
+    "message": "Sesión cerrada exitosamente",
+    "data": null
   }
   ```
 
@@ -151,27 +188,30 @@ Todos los endpoints están prefijados con `/api`.
 - **Descripción:** Devuelve los datos del usuario autenticado.
 - **Encabezado:**
   ```
-  Authorization: Bearer token_jwt
+  Authorization: Bearer <token_jwt>
   ```
-- **Respuesta exitosa:**
+- **Respuesta exitosa esperada:**
   ```json
   {
-    "id": 1,
-    "username": "usuario",
-    "email": "correo@ejemplo.com",
-    "enabled": true,
-    "failed_attempts": 0,
-    "locked_until": null,
-    "two_factor_enabled": false,
-    "created_at": "2023-10-01T12:00:00Z",
-    "updated_at": "2023-10-01T12:00:00Z"
+    "success": true,
+    "message": "Información del usuario obtenida exitosamente",
+    "data": {
+      "id": 1,
+      "enabled": true,
+      "username": "usuario",
+      "email": "correo@ejemplo.com",
+      "created_at": "2023-10-01T12:00:00Z"
+    }
   }
   ```
+
+La estructura de salida está definida en la clase `ApiResponse` ubicada en el paquete `com.wom.login.dto`.
 
 ---
 
 ## Notas Adicionales
 
+- **CORS:** El proyecto incluye una configuración global de CORS para permitir solicitudes desde el cliente. Asegúrate de configurar el dominio del cliente en `WebConfig`.
 - **Seguridad:** Los tokens JWT están firmados con claves RSA. Asegúrate de configurar correctamente las claves pública y privada en el archivo `.env`.
 - **Manejo de Errores:** La API devuelve mensajes claros en caso de errores de validación o autenticación.
 - **Migraciones:** Flyway se encarga de gestionar las migraciones de la base de datos. Los scripts están ubicados en `src/main/resources/db/migration`.
