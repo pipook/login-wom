@@ -35,7 +35,7 @@ JWT_EXPIRATION=900000
 
 1. Clona el repositorio:
    ```bash
-   git clone <url-del-repositorio>
+   git clone https://github.com/pipook/login-wom.git
    cd login
    ```
 
