@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.wom.login.dto.ApiResponse;
 import com.wom.login.dto.LoginRequest;
 import com.wom.login.dto.RegisterRequest;
+import com.wom.login.dto.UserResponse;
 import com.wom.login.models.UserModel;
 import com.wom.login.repositories.UserRepository;
 import com.wom.login.services.AuthService;
@@ -78,6 +80,8 @@ public class AuthController {
             return ResponseEntity.status(401).build();
         String username = authentication.getName();
         UserModel u = userRepository.findByUsername(username).orElseThrow();
-        return ResponseEntity.ok(u);
+        UserResponse userResponse = new UserResponse(u.getId(), u.isEnabled(), u.getUsername(), u.getEmail(),
+                u.getCreated_at());
+        return ResponseEntity.ok(new ApiResponse<>(true, "Usuario autenticado", userResponse));
     }
 }
