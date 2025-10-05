@@ -19,8 +19,6 @@ import com.wom.login.security.JwtTokenProvider;
 import com.wom.login.security.RefreshTokenPair;
 import com.wom.login.util.TokenUtils;
 
-import io.jsonwebtoken.JwtException;
-
 @Service
 public class AuthService {
 
@@ -92,19 +90,23 @@ public class AuthService {
         return ResponseEntity.ok(new ApiResponse<>(true, "Login exitoso", authData));
     }
 
-    public AuthResponse refresh(String refreshTokenStr, String ip) {
+    public ResponseEntity<?> refresh(String refreshTokenStr, String ip) {
         if (!jwtProvider.validate(refreshTokenStr)) {
-            throw new JwtException("Invalid refresh token");
+            return ResponseEntity.status(401).body(new ApiResponse<>(false, "Refresh token inválido.", null));
         }
         String jti = jwtProvider.getJtiFromToken(refreshTokenStr);
         String username = jwtProvider.getUsernameFromToken(refreshTokenStr);
 
-        RefreshToken rt = refreshTokenRepository.findByJti(jti)
-                .orElseThrow(() -> new IllegalStateException("Refresh token not found"));
+        Optional<RefreshToken> rtOpt = refreshTokenRepository.findByJti(jti);
+        if (rtOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(new ApiResponse<>(false, "Refresh token no encontrado", null));
+        }
+        RefreshToken rt = rtOpt.get();
 
         if (rt.isRevoked() || rt.getExpiresAt().isBefore(Instant.now())) {
-            auditService.log(rt.getUser().getId(), "REFRESH_REJECTED", "revoked/expired", ip);
-            throw new IllegalStateException("Refresh token invalid");
+            auditService.log(rt.getUser().getId(), "REFRESH_REJECTED", "revocado o expiro", ip);
+            return ResponseEntity.status(401)
+                    .body(new ApiResponse<>(false, "Refresh token fue revocado o expiro", null));
         }
 
         // validate token content (prevent theft)
@@ -116,8 +118,8 @@ public class AuthService {
                 t.setRevoked(true);
                 refreshTokenRepository.save(t);
             });
-            auditService.log(rt.getUser().getId(), "REFRESH_THEFT_DETECTED", "token hash mismatch", ip);
-            throw new SecurityException("Token mismatch");
+            auditService.log(rt.getUser().getId(), "REFRESH_THEFT_DETECTED", "Token no coincide.", ip);
+            return ResponseEntity.status(401).body(new ApiResponse<>(false, "Token no coincide.", null));
         }
 
         // rotate: revoke old and create new
@@ -141,7 +143,8 @@ public class AuthService {
 
         auditService.log(rt.getUser().getId(), "REFRESH_SUCCESS", "rotated", ip);
 
-        return new AuthResponse(rt.getUser().getId(), username, rt.getUser().getEmail(), newAccess, newPair.getToken());
+        return ResponseEntity.ok(new AuthResponse(rt.getUser().getId(), username, rt.getUser().getEmail(), newAccess,
+                newPair.getToken()));
     }
 
     public void logout(String refreshTokenStr, String ip) {

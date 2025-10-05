@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.wom.login.dto.AuthResponse;
 import com.wom.login.dto.LoginRequest;
 import com.wom.login.dto.RegisterRequest;
 import com.wom.login.models.UserModel;
@@ -62,8 +61,7 @@ public class AuthController {
     public ResponseEntity<?> refresh(@RequestBody Map<String, String> body, HttpServletRequest request) {
         String refresh = body.get("refreshToken");
         String ip = request.getRemoteAddr();
-        AuthResponse res = authService.refresh(refresh, ip);
-        return ResponseEntity.ok(res);
+        return authService.refresh(refresh, ip);
     }
 
     @PostMapping("/logout")
