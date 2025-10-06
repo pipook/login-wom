@@ -38,7 +38,7 @@ JWT_EXPIRATION=900000
 1. Clona el repositorio:
    ```bash
    git clone https://github.com/pipook/login-wom.git
-   cd login
+   cd login-wom
    ```
 
 2. Compila el proyecto:
@@ -71,6 +71,9 @@ Las siguientes rutas son accesibles sin autenticación:
   - `/api/swagger-ui/**`
   - `/swagger-resources/**`
   - `/webjars/**`
+
+  La documentación JSON estará disponible en `http://localhost:8080/api/docs`.
+  La documentación Swagger estará disponible en `http://localhost:8080/api/swagger-ui`.
 - **Autenticación:**
   - `/api/auth/**` (endpoints para login, registro, etc.)
 
